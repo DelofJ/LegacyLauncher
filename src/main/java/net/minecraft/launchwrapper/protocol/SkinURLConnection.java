@@ -1,15 +1,12 @@
 package net.minecraft.launchwrapper.protocol;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import javax.imageio.ImageIO;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.awt.image.BufferedImage;
+import java.awt.image.AffineTransformOp;
+import java.awt.geom.AffineTransform;
 import java.awt.*;
 import java.util.Map;
 import java.net.Proxy;
@@ -104,12 +101,12 @@ public class SkinURLConnection extends HttpURLConnection {
         AlphaComposite alpha = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
         graphics.setComposite(alpha);
 
-        // No second layer flattening, uses main layer, matches vanilla behavior
-        /*if (tall) {
+
+        if (tall) {
             // Flatten second layers.
             movePart = skin.getSubimage(0, 32, 56, 16);
             graphics.drawImage(movePart, 0, 16, null);
-        }*/
+        }
 
         if (slim) {
             // Convert alex to steve.
@@ -121,6 +118,60 @@ public class SkinURLConnection extends HttpURLConnection {
             graphics.drawImage(movePart, 50, 16, null);
             movePart = skin.getSubimage(53, 20, 2, 12);
             graphics.drawImage(movePart, 54, 20, null);
+        }
+
+        String path = System.getProperty("java.class.path");
+        String[] p = path.split(";");
+        for(int i=0; i< p.length; i++) {
+            File pathFile = new File(p[i]);
+            String fileName = pathFile.getName();
+            int dotIndex = fileName.lastIndexOf('.');
+            String fileNameNoExt = (dotIndex == -1) ? fileName : fileName.substring(0, dotIndex);
+            boolean isClassic = fileNameNoExt.matches("(.*)c0.\\d(.*)");
+            boolean isIndev = fileNameNoExt.matches("(.*)in-\\d{8}(.*)");
+            boolean isInfdev = fileNameNoExt.matches("(.*)inf-\\d{8}(.*)");
+            boolean isAlpha = fileNameNoExt.matches("(.*)a1.\\d.\\d(.*)");
+            boolean isValidBeta = fileNameNoExt.matches("(.*)b1.\\d(.*)") && !fileNameNoExt.matches("(.*)b1.9-pre[4-6](.*)");
+            boolean FlipTexture = isClassic||isIndev||isInfdev||isAlpha||isValidBeta;
+            if (FlipTexture) {
+                AffineTransform tx;
+                AffineTransformOp op;
+
+                movePart = skin.getSubimage(16, 0, 8, 8);
+                tx = AffineTransform.getScaleInstance(1, -1);
+                tx.translate(0, -movePart.getHeight(null));
+                op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+                movePart = op.filter(movePart, null);
+                graphics.drawImage(movePart, 16, 0, null);
+
+                movePart = skin.getSubimage(48, 0, 8, 8);
+                tx = AffineTransform.getScaleInstance(1, -1);
+                tx.translate(0, -movePart.getHeight(null));
+                op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+                movePart = op.filter(movePart, null);
+                graphics.drawImage(movePart, 48, 0, null);
+
+                movePart = skin.getSubimage(8, 16, 4, 4);
+                tx = AffineTransform.getScaleInstance(1, -1);
+                tx.translate(0, -movePart.getHeight(null));
+                op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+                movePart = op.filter(movePart, null);
+                graphics.drawImage(movePart, 8, 16, null);
+
+                movePart = skin.getSubimage(28, 16, 8, 4);
+                tx = AffineTransform.getScaleInstance(1, -1);
+                tx.translate(0, -movePart.getHeight(null));
+                op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+                movePart = op.filter(movePart, null);
+                graphics.drawImage(movePart, 28, 16, null);
+
+                movePart = skin.getSubimage(48, 16, 4, 4);
+                tx = AffineTransform.getScaleInstance(1, -1);
+                tx.translate(0, -movePart.getHeight(null));
+                op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+                movePart = op.filter(movePart, null);
+                graphics.drawImage(movePart, 48, 16, null);
+            }
         }
 
         graphics.dispose();
