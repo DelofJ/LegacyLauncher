@@ -101,12 +101,12 @@ public class SkinURLConnection extends HttpURLConnection {
         AlphaComposite alpha = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
         graphics.setComposite(alpha);
 
-
-        if (tall) {
+        // No second layer flattening, uses main layer, matches vanilla behavior
+        /*if (tall) {
             // Flatten second layers.
             movePart = skin.getSubimage(0, 32, 56, 16);
             graphics.drawImage(movePart, 0, 16, null);
-        }
+        }*/
 
         if (slim) {
             // Convert alex to steve.
